@@ -1,7 +1,7 @@
 build
 lib/*
-
 /bin
+*.beam
 
 *.swp
 # Compiled Object files
