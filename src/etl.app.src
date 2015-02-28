@@ -1,0 +1,13 @@
+{application, etl,
+ [{description, "ETL System"},
+  {vsn, "34"},
+  {modules, [etl,
+             etl_starter,
+             etl_verify,
+             etl_preprocess,
+             etl_extract,
+             etl_transform,
+             etl_load,
+             etl_scheduler]},
+  {registered, []},
+  {applications, [kernel, stdlib]}]}.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasources>
+    <datasource id="src" type="database">
+        <parameters>
+            <parameter name="dbms" value="mysql" />
+            <parameter name="host" value="127.0.0.1" />
+            <parameter name="port" value="3306" />
+            <parameter name="username" value="root" />
+            <parameter name="password" value="root" />
+            <parameter name="db" value="test" />
+        <parameters>
+    </datasource>
+</datasources>

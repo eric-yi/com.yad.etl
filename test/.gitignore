@@ -1,11 +1,4 @@
-lib/*
-/bin
 *.beam
-/temp
-/ebin
-/rebar
-/.rebar
-
 *.swp
 # Compiled Object files
 *.slo
