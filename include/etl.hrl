@@ -1,0 +1,4 @@
+
+%% configuration
+-record(config,
+        {etc=""}).
