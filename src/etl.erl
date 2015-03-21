@@ -1,17 +1,17 @@
-% 
+%
 % yi_xiaobin@163.com
 % 2015-01-30 Eric Yi
 
 
 -module(etl).
--import(etl_util, [parse_xml/1, group_system_args/1]).
+-import(etl_util, [read_xml/1, group_system_args/1]).
 -export([main/1]).
 
 main(Args) ->
     io:format("Main Application Starting~n"),
-    Configs = opt_handle(Args), 
+    Configs = opt_handle(Args),
     {_, Etc} = lists:keyfind('-etc', 1, [Configs]),
-    etc_handle(Etc),
+    init(Etc),
     io:format("Main Application Running~n").
 
 opt_handle(Args) ->
@@ -26,8 +26,12 @@ opt_handle(Args) ->
     Configs = etl_util:group_system_args(ArgsTrim),
     Configs.
 
-etc_handle(EtcDir) ->
+init(EtcDir) ->
+    application:start(log4erl),
+    LogConf = lists:concat([EtcDir, '/log.conf']),
+    log4erl:conf(LogConf),
+    log4erl:add_logger(messages_log),
+    log4erl:debug("Log4erl startup"),
     EtlXml = lists:concat([EtcDir, '/etl.xml']),
-    io:format("~s~n", [EtlXml]), 
-    etl_util:parse_xml(EtlXml).
+    etl_util:read_xml(EtlXml).
 

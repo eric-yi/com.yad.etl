@@ -1,14 +1,16 @@
-% 
+%
 % yi_xiaobin@163.com
 % 2015-03-17 Eric Yi
 
 -module(etl_util).
 -include_lib("xmerl/include/xmerl.hrl"). 
 -include("etl.hrl").
--export([parse_xml/1, group_system_args/1]).
+-export([read_xml/1, group_system_args/1]).
 
-parse_xml(File) ->
+read_xml(File) ->
     {Document, _} = xmerl_scan:file(File),
+    DFile = xmerl_xpath:string("/etl/datasource", Document),
+    log4erl:debug("~w~n", [DFile]),
     Document.
 
 group_system_args(Args) ->

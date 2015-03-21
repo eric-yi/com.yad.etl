@@ -6,10 +6,10 @@ ETL_LIB=ebin
 RE_SRC=$(TMP)/rebar
 MYSQL_SRC=$(TMP)/erlang-mysql-driver
 MYSQL_LIB=$(MYSQL_SRC)/ebin
-#ECONFIG_SRC=$(TMP)/econfig
-#ECONFIG_BIN=$(ECONFIG_SRC)/ebin
+LOG4ERL_SRC=$(TMP)/log4erl
+LOG4ERL_LIB=$(LOG4ERL_SRC)/ebin
 
-all : depends clean compile
+all : depends clean compile build
 
 build : clean compile
 	-cp -rf $(ETL_LIB)/* $(LIB)
@@ -23,7 +23,7 @@ release :
 clean :
 	$(RE) clean
 
-depends : init_depends depend_rebar depend_mysql
+depends : init_depends depend_rebar depend_mysql depend_log4erl
 
 init_depends : 
 	-mkdir -p $(LIB)
@@ -36,13 +36,13 @@ depend_mysql : init_mysql
 init_mysql :
 	-rm -rf $(MYSQL_SRC)
 
-#depend_econfig : init_econfig
-#	-git clone https://github.com/benoitc/econfig $(ECONFIG_SRC)
-#	-cp -rf rebar $(ECONFIG_SRC)
-#	-cd $(ECONFIG_SRC) && make
-#	-cp -rf $(ECONFIG_BIN)/* $(LIB)
-#init_econfig :
-#	-rm -rf $(ECONFIG_SRC)
+depend_log4erl : init_log4erl
+	-git clone https://github.com/ahmednawras/log4erl $(LOG4ERL_SRC)
+	-cp -rf rebar $(LOG4ERL_SRC)
+	-cd $(LOG4ERL_SRC)/src && erlc log4erl_lex.xrl && erlc log4erl_parser.yrl && make; cd ../
+	-cp -rf $(LOG4ERL_LIB)/* $(LIB)
+init_log4erl :
+	-rm -rf $(LOG4ERL_SRC)
 
 depend_rebar : init_rebar
 	-git clone git://github.com/rebar/rebar.git $(RE_SRC)
