@@ -9,8 +9,8 @@
 
 read_xml(File) ->
     {Document, _} = xmerl_scan:file(File),
-    DFile = xmerl_xpath:string("/etl/datasource", Document),
-    log4erl:debug("~w~n", [DFile]),
+    DFile = xmerl_xpath:string("//datasource", Document),
+    log4erl:debug("~w~n", [length(DFile)]),
     Document.
 
 group_system_args(Args) ->
