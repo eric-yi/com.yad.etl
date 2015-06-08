@@ -1,5 +1,5 @@
 {application, etl,
- [{description, "ETL System"},
+ [{description, "ETL System With Erlang"},
   {vsn, "34"},
   {modules, [etl,
              etl_starter,

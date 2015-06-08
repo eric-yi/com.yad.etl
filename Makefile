@@ -9,6 +9,8 @@ MYSQL_LIB=$(MYSQL_SRC)/ebin
 LOG4ERL_SRC=$(TMP)/log4erl
 LOG4ERL_LIB=$(LOG4ERL_SRC)/ebin
 
+default : build
+
 all : depends clean compile build
 
 build : clean compile
@@ -25,7 +27,7 @@ clean :
 
 depends : init_depends depend_rebar depend_mysql depend_log4erl
 
-init_depends : 
+init_depends :
 	-mkdir -p $(LIB)
 
 depend_mysql : init_mysql
@@ -52,6 +54,6 @@ init_rebar :
 	-rm -rf rebar
 	-mkdir -p $(TMP)
 	-rm -rf $(RE_SRC)
-	
+
 .PHONY : all build compile release clean depends
 
