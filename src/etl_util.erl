@@ -62,6 +62,31 @@ get_index(Map, Value, Start) ->
   end.
 
 open_url(Root, Url) ->
+  log4erl:debug("open url Root=~s, Url=~s~n", [Root, Url]),
+  UrlRecord = parse_url(Root, Url),
+  log4erl:debug("after parse, ~p~n", [UrlRecord]),
+  {url, Scheme, User, Host, Port, Path, Parameter, Fag, url} = UrlRecord,
+  log4erl:debug("after parse, scheme=~s~n", [Scheme]),
+  open_stream(Scheme, UrlRecord).
+
+open_stream("file", UrlRecord) ->
+  {url, _, User, Host, Port, Path, Parameter, Frag, url} = UrlRecord,
+  Content = read_file(Path),
+  debug_file_data(Content),
+  Content;
+open_stream(Scheme, UrlRecord) ->
+  {url, _, User, Host, Port, Path, Parameter, Fag, url} = UrlRecord.
+
+
+removed_open_url(Root, Url) ->
+  if
+    is_list(Root) -> log4erl:debug("Root is list~n")
+  end,
+  if
+    is_list(Url) -> log4erl:debug("Url is list~n")
+  end,
+  log4erl:debug("open url Root=~s, Url=~s~n", [Root, Url]),
+  parse_url(Root, Url),
   {Scheme, Url1} = parse_scheme(Url),
   log4erl:debug("url scheme :~s~n", [Scheme]),
 
@@ -77,10 +102,14 @@ open_url(Root, Url) ->
         true ->
           log4erl:debug("enter abstract file path.~n"),
           RealPath = Path,
-          log4erl:debug("url real path :~s~n", [RealPath]);
+          log4erl:debug("url real path :~s~n", [RealPath]),
+          Content = read_file(RealPath),
+          debug_file_data(Content);
         false ->
           RealPath = [Root, "/", Path],
-          log4erl:debug("url real path :~s~n", [RealPath])
+          log4erl:debug("url real path :~s~n", [RealPath]),
+          Content = read_file(RealPath),
+          debug_file_data(Content)
       end,
       log4erl:debug("url path :~s~n", [Path]);
     false ->
@@ -105,7 +134,41 @@ open_url(Root, Url) ->
 
   void.
 
+parse_url(Root, Url) ->
+  log4erl:debug("enter parse url~n"),
+  log4erl:debug("Root: ~s~n", [Root]),
+  log4erl:debug("Url: ~s~n", [Url]),
+  {Scheme, Url1} = parse_scheme(Url),
+  log4erl:debug("url scheme :~s~n", [Scheme]),
+  handle_scheme(Scheme, Root, Url1).
+
+handle_scheme("file", Root, Url) ->
+  log4erl:debug("enter file : ~s~n", [Url]),
+  Path = parse_file_path(Url),
+  log4erl:debug("url path :~s~n", [Path]),
+  handle_file_url(Root, Path);
+handle_scheme(Scheme, Root, Url) ->
+  log4erl:debug("scheme Url: ~s~n", [Url]),
+  {Authority, Url2} = parse_authority(Url),
+  log4erl:debug("url authority :~s~n", [Authority]),
+  {User, HostPort} = parse_user_info(Authority),
+  log4erl:debug("url user :~s~n", [User]),
+  {Host, Port} = parse_host_port(HostPort),
+  log4erl:debug("url host=~s, port=~s~n", [Host, Port]),
+  {Path, Url3} = parse_path(Url2),
+  log4erl:debug("url path :~s~n", [Path]),
+  {Parameter, Url4} = parse_parameter(Url3),
+  log4erl:debug("url parameters :~s~n", [Parameter]),
+  Frag = parse_frag(Url4),
+  log4erl:debug("url frags :~s~n", [Frag]),
+  new(Scheme, User, Host, Port, Path, Parameter, Frag, url).
+
+
+handle_file_url(Root, [$/ | Path]) -> new_file_url("/" ++ Path);
+handle_file_url(Root, Path) -> new_file_url([Root, "/", Path]).
+
 parse_scheme(Url) ->
+  log4erl:debug("enter parse scheme: ~s~n", [Url]),
   parse_scheme(Url, []).
 
 parse_scheme([$: | Url], Acc) ->
@@ -188,15 +251,19 @@ unquote([$\%, A, B | Str], Acc) ->
 unquote([C | Str], Acc) ->
   unquote(Str, [C | Acc]).
 
+new_file_url(Path) ->
+  log4erl:debug("enter new file url~n"),
+  new("file", "", "", "", Path, "", "", url).
+
 new(Scheme, User, Host, Port, Path, Parameter, Frag, url) ->
-  update_raw(#url{scheme = Scheme,
+  #url{scheme = Scheme,
                   user = unquote(User),
                   host = Host,
                   port = Port,
                   path = unquote(Path),
                   parameter = Parameter,
                   frag = unquote(Frag),
-                  raw = url}).
+                  raw = url}.
 
 new(Scheme, User, Host, Port, Path, Parameter, Frag) ->
   update_raw(#url{scheme = Scheme,
@@ -207,11 +274,30 @@ new(Scheme, User, Host, Port, Path, Parameter, Frag) ->
                   parameter = Parameter,
                   frag = unquote(Frag)}).
 
-update_raw(url) ->
-  url#url{raw = iolist_to_string(bitstring_to_list(url))}.
+update_raw(Url) ->
+  Url#url{raw = iolist_to_string(Url)}.
 
 iolist_to_string(Str) ->
   binary_to_list(iolist_to_binary(Str)).
 
+read_file(FileName) ->
+  case file:open(FileName, [read]) of
+    {ok, Fd} -> get_file_data(Fd);
+    {error, Result} -> {error, Result}
+  end.
 
+get_file_data(Fd) ->
+  case io:get_line(Fd, "") of
+    eof -> [];
+    Line -> Line ++ get_file_data(Fd)
+  end.
+
+debug_file_data(Data) ->
+  case is_list(Data) of
+    true ->
+      log4erl:debug("read file data :~p~n", [Data]);
+    false ->
+      {error, Result} = Data,
+      log4erl:debug("read file error :~s~n", [Result])
+  end.
 

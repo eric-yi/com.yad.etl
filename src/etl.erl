@@ -50,6 +50,7 @@ init_config(EtcDir) ->
   [{datasource, [{_,DatasourceUrl}]}] = Contents,
   log4erl:debug("datasource id :~p~n", [DatasourceUrl]),
 
-  etl_util:open_url(EtcDir, DatasourceUrl),
+  DatasourceContent = etl_util:open_url(EtcDir, DatasourceUrl),
+  log4erl:debug("datasource content :~s~n", [DatasourceContent]),
   void.
 
